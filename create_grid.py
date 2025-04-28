@@ -37,7 +37,7 @@ def get_top_artists(df, timeframe, grid_size):
     filtered = df[(df['datetime'] >= start_date) & (df['datetime'] <= max_date)]
     top = (
         filtered
-        .groupby(['sp_artist_id', 'artist', 'sp_artist_image'], as_index=False)
+        .groupby(['sp_artist_id', 'artist', 'sp_artist_image'])
         .size()
         .reset_index(name='count')
         .sort_values(by='count', ascending=False)
@@ -76,10 +76,16 @@ def generate_html(top_artists, grid_size):
 # Streamlit App
 st.set_page_config(layout="wide")
 
-timeframe = st.sidebar.selectbox("Select timeframe", list(timeframe_map.keys()), format_func=lambda x: timeframe_map[x])
-grid_size = st.sidebar.selectbox("Select grid size", [3, 5, 7])
+# timeframe = st.sidebar.selectbox("Select timeframe", list(timeframe_map.keys()), format_func=lambda x: timeframe_map[x])
+# grid_size = st.sidebar.selectbox("Select grid size", [3, 5, 7])
 
-st.title(f"Top {grid_size}x{grid_size} for {timeframe_map[timeframe]}")
+col1, col2  = st.columns(2)
+with col1:
+    grid_size= st.selectbox("Select grid size", [3, 5, 7])
+with col2: 
+    timeframe = st.selectbox("Select timeframe", list(timeframe_map.keys()), format_func=lambda x: timeframe_map[x])
+
+st.title(f"Top {grid_size}x{grid_size} artists for {timeframe_map[timeframe]}")
 
 # Load and compute
 _df = load_data('./data/scrobbles_w_image.csv')
@@ -87,8 +93,8 @@ top_artists = get_top_artists(_df, timeframe, grid_size)
 html = generate_html(top_artists, grid_size)
 
 # Calculate iframe height to fit grid without scrollbar
- gap_px = 5 * (grid_size - 1)
- padding_px = 20 * 2
- iframe_height = grid_size * cell_size + gap_px + padding_px
+gap_px = 5 * (grid_size - 1)
+padding_px = 20 * 2
+iframe_height = grid_size * cell_size + gap_px + padding_px
 
 components.html(html, height=int(iframe_height), scrolling=False)
